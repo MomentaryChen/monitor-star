@@ -52,13 +52,34 @@ monitor-star/
 
 ## Usage
 
-### 1. Build & start
+### 1. Build & start (Docker only)
 
 ```bash
 # If using a pre-built image, comment out the `build:` block in docker-compose.yml
 # and set image: your-registry/your-app:tag
 
 docker-compose up -d
+```
+
+### 1b. Build with helper script (`build.ps1`)
+
+On Windows / PowerShell you can use the provided build script:
+
+```powershell
+# Default: Maven build (skip tests) + docker compose build
+.\build.ps1
+
+# Run tests during Maven build
+.\build.ps1 -SkipTests:$false
+
+# Only build JARs, skip docker compose
+.\build.ps1 -NoDockerCompose
+
+# Build and start docker compose with multiple replicas
+.\build.ps1 -Up -Replicas 3 -OrderReplicas 2
+
+# Show README locations (no build)
+.\build.ps1 -Readme
 ```
 
 ### 2. Access the services
@@ -93,6 +114,11 @@ docker-compose down -v        # stop + delete volumes (reset data)
 - **Add more apps**: add a new `job_name` block in `prometheus/prometheus.yml`
 - **Import community dashboards**: download JSON from https://grafana.com/grafana/dashboards
   and place it in `grafana/dashboards/`; popular IDs for Spring Boot: **4701**, **12900**
+
+## License
+
+This project is open-sourced under the **MIT License**.  
+See the [`LICENSE`](LICENSE) file for details.
 
 ## Screenshots
 
