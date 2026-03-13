@@ -1,0 +1,231 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "panels": [
+    {
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "gridPos": { "h": 3, "w": 4, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "title": "Total Log Lines (Docker)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({job=\"docker\", service=~\"${service:regex}\", container=~\"${container:regex}\"}[$__range]))",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 0 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "title": "ERROR Count (Docker)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({job=\"docker\", service=~\"${service:regex}\", container=~\"${container:regex}\", level=\"ERROR\"}[$__range]))",
+          "legendFormat": "Errors",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 0 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }] }
+        }
+      },
+      "title": "WARN Count (Docker)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({job=\"docker\", service=~\"${service:regex}\", container=~\"${container:regex}\", level=~\"WARN|WARNING\"}[$__range]))",
+          "legendFormat": "Warnings",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 3 },
+      "id": 4,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": true,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "title": "Docker Logs (All Containers)",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{job=\"docker\", service=~\"${service:regex}\", container=~\"${container:regex}\", level=~\"${level:regex}\", stream=~\"${stream:regex}\"} |= \"${search}\"",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "${loki_ds}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "id": 6,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" } },
+      "title": "Log Rate by Level (Docker)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (level) (rate({job=\"docker\", service=~\"${service:regex}\", container=~\"${container:regex}\"}[1m]))",
+          "legendFormat": "{{level}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["logs", "loki", "docker"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "name": "loki_ds",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "type": "datasource",
+        "label": "Loki"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "loki", "uid": "${loki_ds}" },
+        "definition": "label_values({job=\"docker\"}, service)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values({job=\"docker\"}, service)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Service"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "loki", "uid": "${loki_ds}" },
+        "definition": "label_values({job=\"docker\", service=~\"$service\"}, container)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "name": "container",
+        "options": [],
+        "query": "label_values({job=\"docker\", service=~\"$service\"}, container)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Container"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "loki", "uid": "${loki_ds}" },
+        "definition": "label_values({job=\"docker\", service=~\"$service\", container=~\"$container\"}, stream)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": false,
+        "name": "stream",
+        "options": [],
+        "query": "label_values({job=\"docker\", service=~\"$service\", container=~\"$container\"}, stream)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query",
+        "label": "Stream"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "name": "level",
+        "options": [],
+        "datasource": { "type": "loki", "uid": "${loki_ds}" },
+        "definition": "label_values({job=\"docker\", service=~\"$service\", container=~\"$container\"}, level)",
+        "query": "label_values({job=\"docker\", service=~\"$service\", container=~\"$container\"}, level)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false,
+        "type": "query",
+        "label": "Level"
+      },
+      {
+        "current": { "selected": false, "text": "", "value": "" },
+        "hide": 0,
+        "name": "search",
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox",
+        "label": "Search"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Docker — Logs (All)",
+  "uid": "docker-logs-all",
+  "version": 1
+}

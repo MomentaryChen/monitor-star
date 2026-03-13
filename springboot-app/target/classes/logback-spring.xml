@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <!-- 純文字格式：[LEVEL] dd-MM-yyyy HH:mm:ss.SSS [thread] [traceId=x,spanId=y] Logger - message -->
+  <!-- springProperty 透過 Spring Environment 讀取，可正確取得 docker-compose 設定的環境變數 -->
+  <springProperty name="LOG_PATH" source="LOG_PATH" defaultValue="/logs"/>
+  <property name="LOG_PATTERN"
+    value="[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] [traceId=%X{traceId:--},spanId=%X{spanId:--}] [ip=${INSTANCE_IP:-unknown}] %logger{0} - %msg%n"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/springboot-app123.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_PATH}/springboot-app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <maxHistory>3</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+</configuration>

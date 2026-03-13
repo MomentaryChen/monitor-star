@@ -1,0 +1,72 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ── Spring Boot 所有服務日誌（統一 job: springboot，service / instance_ip 依各容器區分）──
+  # springboot-app: /var/log/springboot/*.log
+  # order-service:  /var/log/order-service/*.log
+  # 新增服務時只需再加一個 static_configs 區塊
+  - job_name: springboot
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: springboot
+          service: springboot-app
+          __path__: /var/log/springboot/*.log
+      - targets: [localhost]
+        labels:
+          job: springboot
+          service: order-service
+          __path__: /var/log/order-service/*.log
+    pipeline_stages:
+      # 解析格式：[LEVEL] dd-MM-yyyy HH:mm:ss.SSS [thread] [traceId=x,spanId=y] [ip=a.b.c.d] Logger - message
+      - regex:
+          expression: '^\[(?P<level>\w+)\s*\] (?P<ts>\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}\.\d{3}) \[(?P<thread>[^\]]+)\] \[traceId=(?P<traceId>[^,\]]*),spanId=(?P<spanId>[^\]]*)\] \[ip=(?P<instance_ip>[^\]]*)\] (?P<logger>\S+) - (?P<message>.*)'
+      - timestamp:
+          source: ts
+          format: "02-01-2006 15:04:05.000"
+      - labels:
+          level:
+          logger:
+          instance_ip:
+
+  # ── Docker container logs (stdout/stderr) ────────────────────────────────────
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: status
+            values: [running]
+
+    relabel_configs:
+      # 固定加上 job label，供 Grafana 看板用 {job="docker"} 查詢與 filter
+      - target_label: job
+        replacement: docker
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(.*)'
+        target_label: container
+      # 預設用 container name 當 service，確保 Grafana 的 service filter 一定有值
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(.*)'
+        target_label: service
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+      - source_labels: [__meta_docker_container_image_name]
+        target_label: image
+
+    pipeline_stages:
+      - docker: {}
+      - regex:
+          expression: '(?i)(?P<level>TRACE|DEBUG|INFO|WARN|WARNING|ERROR|FATAL|CRITICAL)'
+      - labels:
+          level:

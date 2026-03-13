@@ -1,0 +1,22 @@
+apiVersion: 1
+
+providers:
+  - name: 'SpringBoot Dashboards'
+    orgId: 1
+    folder: 'Spring Boot'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/springboot
+
+  - name: 'Docker Dashboards'
+    orgId: 1
+    folder: 'Docker'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/docker

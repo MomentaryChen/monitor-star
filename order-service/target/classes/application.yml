@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+spring:
+  application:
+    name: order-service
+  sleuth:
+    sampler:
+      probability: 1.0
+
+# logging:
+#   file:
+#     path: ${LOG_PATH:-/app/logs}
+

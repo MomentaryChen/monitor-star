@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # ── Prometheus ───────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    ports:
+      - "29090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Grafana ──────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "23000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+  # ── Loki(log storage) ───────────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:2.9.6
+    container_name: loki
+    ports:
+      - "23100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ── Promtail (log collector → Loki) ─────────────────────────────────────────
+  promtail:
+    image: grafana/promtail:2.9.6
+    container_name: promtail
+    ports:
+      - "29080:9080"   # 除錯用：targets http://localhost:29080/targets
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Spring Boot 日誌檔（共用 volume，不依賴 Docker socket，Windows 可正常送 Loki）
+      - springboot_logs:/var/log/springboot:ro
+      # Order Service 日誌檔（共用 volume）
+      - order_service_logs:/var/log/order-service:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  # ── Nginx Gateway (load balancer → springboot-app replicas) ─────────────────
+  gateway:
+    image: nginx:1.25-alpine
+    container_name: gateway
+    ports:
+      - "28080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - monitoring
+    depends_on:
+      - springboot-app
+      - order-service
+    restart: unless-stopped
+
+  # ── Spring Boot app (Actuator + Prometheus) ─────────────────────────────────
+  # 使用 --scale springboot-app=N 啟動多個副本，由 gateway 分流
+  # 例：docker compose up -d --scale springboot-app=3
+  # 或  .\build.ps1 -Up -Replicas 3
+  springboot-app:
+    build:
+      context: ./springboot-app
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOG_PATH=/app/logs
+    volumes:
+      # 日誌寫入此 volume，由 Promtail 讀取並推送至 Loki
+      - springboot_logs:/app/logs
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+  # ── Order Service (Actuator + Prometheus) ────────────────────────────────────
+  # 可用 --scale order-service=N 啟動多個副本，由 gateway 以路徑分流
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOG_PATH=/app/logs
+    volumes:
+      - order_service_logs:/app/logs
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  springboot_logs:
+  order_service_logs:

@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 15s       # how often to scrape targets
+  evaluation_interval: 15s   # how often to evaluate rules
+
+rule_files:
+  # - "alert_rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  # Spring Boot application (Actuator + Micrometer)
+  # 使用 DNS 服務發現，支援 docker-compose scale springboot-app=3
+  - job_name: 'springboot-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    dns_sd_configs:
+      - names: ['springboot-app']
+        type: 'A'
+        port: 8080
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # Order Service (Actuator + Micrometer)
+  # 使用 DNS 服務發現，支援 docker-compose scale order-service=3
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    dns_sd_configs:
+      - names: ['order-service']
+        type: 'A'
+        port: 8080
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance

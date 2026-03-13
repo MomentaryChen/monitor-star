@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+spring:
+  application:
+    name: springboot-app
+  sleuth:
+    # 取樣率 1.0 = 100%，分散式追蹤時可依環境調整
+    sampler:
+      probability: 1.0
+
+# logging:
+#   file:
+#     path: ${LOG_PATH:-/app/logs}
+
