@@ -2,9 +2,7 @@
 
 Monitors a Spring Boot application using **Prometheus** + **Grafana**.
 
-## 專案簡介（中文）
-
-這是一個用來監控 Spring Boot 應用程式的整合範例，透過 **Prometheus** 收集 Actuator / Micrometer 指標，並使用 **Grafana** 顯示儀表板與查詢介面。專案提供 Docker Compose 一鍵啟動的環境，內建 Spring Boot 監控儀表板與日誌查詢畫面，方便快速體驗與擴充。
+> 🌐 For Chinese version, see [`README.zh-TW.md`](README.zh-TW.md).
 
 ## Prerequisites
 

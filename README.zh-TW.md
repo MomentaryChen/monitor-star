@@ -1,0 +1,110 @@
+# Spring Boot Monitoring Stack（中文）
+
+這是一個用來監控 Spring Boot 應用程式的整合範例，透過 **Prometheus** 收集 Actuator / Micrometer 指標，並使用 **Grafana** 顯示儀表板與查詢介面。專案提供 Docker Compose 一鍵啟動的環境，內建 Spring Boot 監控儀表板與日誌查詢畫面，方便快速體驗與擴充。
+
+> 🇺🇸 English version: [`README.md`](README.md)
+
+## 先決條件
+
+你的 Spring Boot 應用需要暴露 Prometheus 指標，在 `pom.xml` 中加入：
+
+```xml
+<!-- Spring Boot Actuator -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+
+<!-- Micrometer Prometheus Registry -->
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
+```
+
+在 `application.properties` / `application.yml` 中設定：
+
+```properties
+# 開啟 actuator endpoints
+management.endpoints.web.exposure.include=health,info,prometheus,metrics
+management.endpoint.health.show-details=always
+management.metrics.export.prometheus.enabled=true
+```
+
+## 專案結構
+
+```text
+monitor-star/
+├── docker-compose.yml
+├── prometheus/
+│   └── prometheus.yml          # Prometheus 探測設定
+├── grafana/
+│   ├── provisioning/
+│   │   ├── datasources/
+│   │   │   └── prometheus.yml  # 自動設定 Prometheus 資料來源
+│   │   └── dashboards/
+│   │       └── dashboards.yml  # 儀表板提供者設定
+│   └── dashboards/
+│       └── springboot.json     # 預先建立的 Spring Boot 儀表板
+└── app/                        # （選用）你的 Spring Boot 原始碼
+    └── Dockerfile
+```
+
+## 使用方式
+
+### 1. 建置與啟動
+
+```bash
+# 如果使用已建好的映像檔，可以在 docker-compose.yml 中註解掉 build 區塊，
+# 並改成 image: your-registry/your-app:tag
+
+docker-compose up -d
+```
+
+### 2. 服務入口
+
+| 服務       | URL                       | 帳號密碼           |
+|------------|---------------------------|--------------------|
+| App        | http://localhost:8080     | —                  |
+| Prometheus | http://localhost:9090     | —                  |
+| Grafana    | http://localhost:3000     | admin / admin123   |
+
+### 3. 查看儀表板
+
+Grafana 啟動後會自動匯入 **「Spring Boot Monitoring」** 儀表板，位於
+**Spring Boot** 資料夾底下，內容包含：
+
+- ✅ 應用健康狀態 / uptime
+- 📈 HTTP 請求頻率與回應時間（p99）
+- 🧠 JVM 堆內記憶體與非堆內記憶體
+- 🧵 JVM 執行緒數量
+- ⚙️ CPU 使用率
+
+### 4. 停止服務
+
+```bash
+docker-compose down           # 停止容器（保留資料卷）
+docker-compose down -v        # 停止並刪除資料卷（重置資料）
+```
+
+## 自訂化
+
+- **修改 Grafana 管理者密碼**：在 `docker-compose.yml` 中設定 `GF_SECURITY_ADMIN_PASSWORD`
+- **增加更多應用服務**：在 `prometheus/prometheus.yml` 裡新增 `job_name` 區塊
+- **匯入社群儀表板**：從 [Grafana Dashboards](https://grafana.com/grafana/dashboards) 下載 JSON
+  放到 `grafana/dashboards/`，常見 Spring Boot 儀表板 ID 如：**4701**、**12900**
+
+## 截圖
+
+### Spring Boot 指標儀表板
+
+![Spring Boot metrics dashboard](img/springboot-log_dashboard.png)
+
+### 日誌查詢畫面（Loki / logs view）
+
+![Spring Boot log explorer](img/springboot-log_log-explorer.png)
+
+## 作者
+
+維護者：**MomentaryChen**（`zzser15963@gmail.com`）
+
