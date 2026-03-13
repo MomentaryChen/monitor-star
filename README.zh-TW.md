@@ -141,6 +141,16 @@ docker-compose down -v        # 停止並刪除資料卷（重置資料）
 
 ![Spring Boot log explorer](img/springboot-log/log-explorer.png)
 
+### Docker 日誌儀表板
+
+`Docker — Logs` 儀表板（位於 `Docker` 資料夾底下）提供：
+
+- **依容器篩選**：可以鎖定主機上特定 Docker container 的日誌。
+- **錯誤與警告總覽**：查看各 container 的 log 量與等級分佈（ERROR / WARN / INFO / DEBUG）。
+- **熱門容器**：快速發現產生最多 log 或錯誤的 container，輔助排除基礎設施問題。
+
+![Docker logs dashboard](img/docker-log/dashboard.png)
+
 ## 作者
 
 維護者：**MomentaryChen**（`zzser15963@gmail.com`）

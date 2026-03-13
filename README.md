@@ -141,6 +141,16 @@ The **Spring Boot — Logs** dashboard (under the `Spring Boot` folder) lets you
 
 ![Spring Boot log explorer](img/springboot-log/log-explorer.png)
 
+### Docker logs dashboard
+
+The **Docker — Logs** dashboard (under the `Docker` folder) gives you:
+
+- **Container-level filtering**: focus on specific Docker containers running on the host.
+- **Error / warn overview**: see log volume and level distribution per container.
+- **Hot containers**: quickly spot containers generating the most logs or errors.
+
+![Docker logs dashboard](img/docker-log/dashboard.png)
+
 ## Author
 
 Maintainer: **MomentaryChen** (`zzser15963@gmail.com`)
