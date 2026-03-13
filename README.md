@@ -1,6 +1,12 @@
 # Spring Boot Monitoring Stack
 
-Monitors a Spring Boot application using **Prometheus** + **Grafana**.
+Monitors Spring Boot applications using **Prometheus**, **Grafana**, **Loki**, and **Promtail**, all running in Docker.
+
+The stack includes:
+
+- **Prometheus**: scrapes metrics from multiple Spring Boot services (`springboot-app`, `order-service`, ...).
+- **Grafana**: pre-built dashboards for Spring Boot metrics, Spring Boot logs, and Docker logs.
+- **Loki + Promtail**: collects and indexes application logs and container logs for query in Grafana.
 
 > 🌐 For Chinese version, see [`README.zh-TW.md`](README.zh-TW.md).
 
