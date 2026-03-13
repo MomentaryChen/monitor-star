@@ -124,11 +124,22 @@ See the [`LICENSE`](LICENSE) file for details.
 
 ### Spring Boot metrics dashboard
 
-![Spring Boot metrics dashboard](img/springboot-log_dashboard.png)
+![Spring Boot metrics dashboard](img/springboot-monitoring/dashboard.png)
+
+### Spring Boot logs dashboard
+
+The **Spring Boot — Logs** dashboard (under the `Spring Boot` folder) lets you:
+
+- **Service-level filtering**: filter logs by Spring Boot service and instance IP.
+- **Error / warn overview**: see total log volume and counts by level (ERROR/WARN/INFO/DEBUG).
+- **Top noisy modules**: quickly find top error loggers by class name.
+- **Trace / keyword search**: search by logger, traceId, or any keyword across all selected services.
+
+![Spring Boot logs dashboard](img/springboot-log/dashboard.png)
 
 ### Log explorer (Loki / logs view)
 
-![Spring Boot log explorer](img/springboot-log_log-explorer.png)
+![Spring Boot log explorer](img/springboot-log/log-explorer.png)
 
 ## Author
 

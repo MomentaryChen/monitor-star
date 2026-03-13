@@ -124,11 +124,22 @@ docker-compose down -v        # 停止並刪除資料卷（重置資料）
 
 ### Spring Boot 指標儀表板
 
-![Spring Boot metrics dashboard](img/springboot-log_dashboard.png)
+![Spring Boot metrics dashboard](img/springboot-monitoring/dashboard.png)
+
+### Spring Boot 日誌儀表板
+
+`Spring Boot — Logs` 儀表板（位於 `Spring Boot` 資料夾底下）提供：
+
+- **依服務篩選**：可用 Service / Instance IP 變數，過濾到特定 Spring Boot 服務與節點。
+- **錯誤與警告總覽**：快速看到當前時間範圍內各等級（ERROR / WARN / INFO / DEBUG）的 log 數量。
+- **Top 問題模組**：透過 Top Error Loggers 找出產生最多錯誤的 logger class。
+- **Trace / 關鍵字搜尋**：支援 logger 名稱、traceId、任意關鍵字查詢，多服務一起追問題。
+
+![Spring Boot logs dashboard](img/springboot-log/dashboard.png)
 
 ### 日誌查詢畫面（Loki / logs view）
 
-![Spring Boot log explorer](img/springboot-log_log-explorer.png)
+![Spring Boot log explorer](img/springboot-log/log-explorer.png)
 
 ## 作者
 

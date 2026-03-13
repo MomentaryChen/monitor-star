@@ -10,6 +10,101 @@
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 1 },
+              { "color": "red", "value": 0.99 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "id": 4,
+      "title": "App Up (All Selected Services)",
+      "type": "stat",
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "background" },
+      "targets": [
+        {
+          "expr": "sum(up{job=~\"$service\", instance=~\"$instance\"})",
+          "legendFormat": "Up instances",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "displayMode": "auto" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Service" }, "properties": [{ "id": "custom.width", "value": 200 }] },
+          { "matcher": { "id": "byName", "options": "Up Instances" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background" } }] }
+        ]
+      },
+      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+      "id": 9,
+      "options": { "cellHeight": "sm", "footer": { "countRows": false }, "showHeader": true },
+      "title": "Service Up by Service",
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": {
+              "job": 0,
+              "service": 1,
+              "Service": 1,
+              "instance": 2,
+              "Instance": 2
+            },
+            "renameByName": {
+              "job": "Service",
+              "Value": "Up Instances"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": [
+              {
+                "field": "Service",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (job) (up{job=~\"$service\"})",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
           "color": { "mode": "thresholds" },
           "custom": { "align": "auto", "displayMode": "auto" },
           "mappings": [],
@@ -24,22 +119,49 @@
         },
         "overrides": [
           { "matcher": { "id": "byName", "options": "Instance" }, "properties": [{ "id": "custom.width", "value": 180 }] },
-          { "matcher": { "id": "byName", "options": "Value" }, "properties": [{ "id": "displayName", "value": "CPU %" }, { "id": "custom.cellOptions", "value": { "type": "color-background" } }] }
+          { "matcher": { "id": "byName", "options": "CPU %" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background" } }] }
         ]
       },
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
       "id": 1,
       "options": { "cellHeight": "sm", "footer": { "countRows": false }, "showHeader": true },
-      "title": "CPU Usage",
+      "title": "CPU Usage by Instance",
       "transformations": [
         { "id": "merge", "options": {} },
-        { "id": "organize", "options": { "excludeByName": { "Time": true }, "indexByName": {}, "renameByName": { "Value": "CPU %", "instance": "Instance" } } }
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": {
+              "job": 0,
+              "service": 1,
+              "Service": 1,
+              "instance": 2,
+              "Instance": 2
+            },
+            "renameByName": {
+              "Value": "CPU %",
+              "instance": "Instance"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": [
+              {
+                "field": "job",
+                "desc": false
+              }
+            ]
+          }
+        }
       ],
       "type": "table",
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "process_cpu_usage{job=\"springboot-app\", instance=~\"$instance\"} * 100",
+          "expr": "process_cpu_usage{job=~\"$service\", instance=~\"$instance\"} * 100",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -61,19 +183,46 @@
           { "matcher": { "id": "byName", "options": "Heap Used" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background" } }] }
         ]
       },
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 12 },
       "id": 2,
       "options": { "cellHeight": "sm", "footer": { "countRows": false }, "showHeader": true },
-      "title": "JVM Heap Used",
+      "title": "JVM Heap Used by Instance",
       "transformations": [
         { "id": "merge", "options": {} },
-        { "id": "organize", "options": { "excludeByName": { "Time": true }, "indexByName": {}, "renameByName": { "Value": "Heap Used", "instance": "Instance" } } }
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": {
+              "job": 0,
+              "service": 1,
+              "Service": 1,
+              "instance": 2,
+              "Instance": 2
+            },
+            "renameByName": {
+              "Value": "Heap Used",
+              "instance": "Instance"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": [
+              {
+                "field": "job",
+                "desc": false
+              }
+            ]
+          }
+        }
       ],
       "type": "table",
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "jvm_memory_used_bytes{job=\"springboot-app\", area=\"heap\", instance=~\"$instance\"}",
+          "expr": "jvm_memory_used_bytes{job=~\"$service\", area=\"heap\", instance=~\"$instance\"}",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -83,31 +232,15 @@
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "short" } },
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 12 },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
       "id": 3,
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
-      "title": "Active HTTP Sessions",
+      "title": "Active HTTP Sessions (Selected Services)",
       "type": "stat",
       "targets": [
         {
-          "expr": "tomcat_sessions_active_current_sessions{job=\"springboot-app\", instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} - Sessions",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] } } },
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 12 },
-      "id": 4,
-      "title": "App Up (Total)",
-      "type": "stat",
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "background" },
-      "targets": [
-        {
-          "expr": "sum(up{job=\"springboot-app\", instance=~\"$instance\"})",
-          "legendFormat": "Up instances",
+          "expr": "sum(tomcat_sessions_active_current_sessions{job=~\"$service\", instance=~\"$instance\"})",
+          "legendFormat": "Sessions",
           "refId": "A"
         }
       ]
@@ -115,14 +248,14 @@
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "reqps" } },
-      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 18 },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 24 },
       "id": 5,
       "title": "HTTP Request Rate",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "rate(http_server_requests_seconds_count{job=\"springboot-app\", instance=~\"$instance\"}[1m])",
-          "legendFormat": "{{instance}} | {{method}} {{uri}} [{{status}}]",
+          "expr": "rate(http_server_requests_seconds_count{job=~\"$service\", instance=~\"$instance\"}[1m])",
+          "legendFormat": "{{job}} | {{instance}} | {{method}} {{uri}} [{{status}}]",
           "refId": "A"
         }
       ]
@@ -130,14 +263,14 @@
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "s" } },
-      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 18 },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 24 },
       "id": 6,
       "title": "HTTP Response Time (p99)",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"springboot-app\", instance=~\"$instance\"}[1m])) by (le, uri, instance))",
-          "legendFormat": "{{instance}} | p99 {{uri}}",
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=~\"$service\", instance=~\"$instance\"}[1m])) by (le, uri, instance, job))",
+          "legendFormat": "{{job}} | {{instance}} | p99 {{uri}}",
           "refId": "A"
         }
       ]
@@ -145,14 +278,14 @@
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "bytes" } },
-      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 30 },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 36 },
       "id": 7,
       "title": "JVM Memory Usage",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{job=\"springboot-app\", instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} | {{area}} - {{id}}",
+          "expr": "jvm_memory_used_bytes{job=~\"$service\", instance=~\"$instance\"}",
+          "legendFormat": "{{job}} | {{instance}} | {{area}} - {{id}}",
           "refId": "A"
         }
       ]
@@ -160,19 +293,19 @@
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "short" } },
-      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 30 },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 36 },
       "id": 8,
       "title": "JVM Threads",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "jvm_threads_live_threads{job=\"springboot-app\", instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} - Live",
+          "expr": "jvm_threads_live_threads{job=~\"$service\", instance=~\"$instance\"}",
+          "legendFormat": "{{job}} | {{instance}} - Live",
           "refId": "A"
         },
         {
-          "expr": "jvm_threads_daemon_threads{job=\"springboot-app\", instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} - Daemon",
+          "expr": "jvm_threads_daemon_threads{job=~\"$service\", instance=~\"$instance\"}",
+          "legendFormat": "{{job}} | {{instance}} - Daemon",
           "refId": "B"
         }
       ]
@@ -194,6 +327,20 @@
         "type": "datasource"
       },
       {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "hide": 0,
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "query": "label_values(up{job!=\"prometheus\"}, job)",
+        "current": { "selected": true, "text": "All", "value": ".*" },
+        "allValue": ".*",
+        "options": []
+      },
+      {
         "name": "instance",
         "label": "Instance",
         "type": "query",
@@ -202,7 +349,7 @@
         "refresh": 1,
         "includeAll": true,
         "multi": true,
-        "query": "label_values(up{job=\"springboot-app\"}, instance)",
+        "query": "label_values(up{job=~\"$service\"}, instance)",
         "current": { "selected": true, "text": "All", "value": "$__all" },
         "allValue": "",
         "options": []
@@ -212,8 +359,8 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Spring Boot Monitoring",
+  "title": "Spring Boot Monitoring — Multi-Service",
   "uid": "springboot-monitoring",
-  "version": 2,
-  "description": "上方 Instance 選單一節點可做單機排查；選 All 看全部實例。"
+  "version": 3,
+  "description": "依 Service / Instance 分開監控，多個 Spring Boot Service 與多實例場景適用。"
 }
